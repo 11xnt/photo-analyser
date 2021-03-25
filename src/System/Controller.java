@@ -93,10 +93,10 @@ public class Controller implements Initializable {
         for (int i = 0; i < imageChosen.getWidth(); i++) {
             for (int j = 0; j < imageChosen.getHeight(); j++) {
                 Color oldColor = pixelReader.getColor(i, j);
-                //if hue/saturation/brightness out of range -> turn black
 
+                //if hue/saturation/brightness out of range -> turn black
                 // for red specific fruit (due to the fact red's hue is between 320 degrees and 30 degrees
-                if(finalHue >= 320 || finalHue <= 30) {
+                if(finalHue > 320 || finalHue < 30) {
                     if (((oldColor.getHue() <= finalHue) && (oldColor.getHue() <= 30)) || ((oldColor.getHue() >= finalHue) && (oldColor.getHue() >= 320))) {
                         if(oldColor.getSaturation() <= finalSat-.1 || oldColor.getSaturation() >= finalSat+.1) {
                             if(oldColor.getBrightness() <= finalBri-.4 || oldColor.getBrightness() >= finalBri+.4) {
@@ -112,27 +112,22 @@ public class Controller implements Initializable {
 
                 // for other coloured fruit
                 else if(finalHue < 320 || finalHue > 30) {
-                    if (((oldColor.getHue()+40 <= finalHue) && (oldColor.getHue() > 30)) || ((oldColor.getHue()-40 >= finalHue) && (oldColor.getHue() < 320))) {
-                        if(oldColor.getSaturation() <= finalSat-.6 || oldColor.getSaturation() >= finalSat+.6) {
-                            if(oldColor.getBrightness() <= finalBri-.7 || oldColor.getBrightness() >= finalBri+.7) {
+                    // if hue is not out of range turn white
+                    if ((oldColor.getHue() <= finalHue-40 && oldColor.getHue() < 30) || (oldColor.getHue() >= finalHue+40 && oldColor.getHue() > 320)) {
+                        writer.setColor(i, j, black);
+                    } else {
+                        if(oldColor.getSaturation() <= finalSat-.4 || oldColor.getSaturation() >= finalSat+.4) {
+                            writer.setColor(i, j, black);
+                        } else {
+                            if(oldColor.getBrightness() <= finalBri-.4 || oldColor.getBrightness() >= finalBri+.4) {
                                 writer.setColor(i, j, black);
                             } else {
                                 writer.setColor(i, j, white);
                             }
-                        } else {
-                            writer.setColor(i, j, black);
                         }
-                    } else writer.setColor(i, j, black);
+                    }
                 }
-
                 //^^^^^^^^^^^^ FIX THIS SHITHEAD
-
-
-
-
-
-
-
             }
         }
         calcView.setImage(outputImage);
@@ -217,7 +212,7 @@ public class Controller implements Initializable {
                     }
                 }
             }
-            if ((maxX-minX)*(maxY - minY) > 150) {
+            if (((maxX-minX)*(maxY - minY) > 150) || (maxX-minX)*(maxY - minY) < 1000) {
                 drawRectangles(minX, minY, maxX, maxY);
             }
         }
