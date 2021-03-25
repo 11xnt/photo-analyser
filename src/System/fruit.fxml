@@ -61,16 +61,14 @@
                         <Line endX="-100.0" endY="338.0" layoutX="544.0" layoutY="198.0" startX="-100.0" startY="-150.0" />
                         <Text fx:id="imageProp1" layoutX="542.0" layoutY="532.0" strokeType="OUTSIDE" strokeWidth="0.0" wrappingWidth="346.13671875" />
                         <ImageView fx:id="calcView" fitHeight="388.0" fitWidth="517.0" layoutX="464.0" layoutY="98.0" pickOnBounds="true" preserveRatio="true" />
-                        <Slider fx:id="contSlider" blockIncrement="0.1" layoutX="88.0" layoutY="390.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="256.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
-                        <Slider fx:id="satSlider" blockIncrement="0.1" layoutX="88.0" layoutY="323.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="256.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
-                        <Slider fx:id="hueSlider" blockIncrement="0.1" layoutX="88.0" layoutY="259.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="256.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
+                        <Slider fx:id="satSlider" blockIncrement="0.1" layoutX="88.0" layoutY="286.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="256.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
                         <Slider fx:id="brightSlider" blockIncrement="0.1" layoutX="88.0" layoutY="192.0" majorTickUnit="0.1" max="1.0" minorTickCount="0" prefHeight="14.0" prefWidth="256.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" />
                         <Text layoutX="188.0" layoutY="181.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Brightness" />
-                        <Text layoutX="205.0" layoutY="249.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hue" />
-                        <Text layoutX="189.0" layoutY="311.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Saturation" />
-                        <Text layoutX="193.0" layoutY="379.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Contrast" />
+                        <Text layoutX="189.0" layoutY="274.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Saturation" />
                         <Text layoutX="184.0" layoutY="61.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Fruit Colour" />
                         <Button layoutX="165.0" layoutY="98.0" mnemonicParsing="false" onAction="#selectColour" text="Colour Selection" />
+                        <Button layoutX="188.0" layoutY="461.0" mnemonicParsing="false" onAction="#updateNewColor" text="Update" />
+                        <Button layoutX="188.0" layoutY="507.0" mnemonicParsing="false" onAction="#process" text="Process" />
                      </children>
                   </AnchorPane>
             </content>
