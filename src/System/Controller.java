@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -18,17 +17,14 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 public class Controller implements Initializable {
 
     Image imageChosen;
     Stage stage;
-
-
+    //RectangleNumbers rectangleNumbers;
+    ArrayList<RectangleNumber> rectangleNumbers;
 
     private Color selectedColor;
     int[] imageArray;
@@ -42,6 +38,7 @@ public class Controller implements Initializable {
     public Text imageProp1;
     @FXML
     public Slider brightSlider, satSlider;
+
 
 
     @Override
@@ -93,33 +90,16 @@ public class Controller implements Initializable {
         for (int i = 0; i < imageChosen.getWidth(); i++) {
             for (int j = 0; j < imageChosen.getHeight(); j++) {
                 Color oldColor = pixelReader.getColor(i, j);
-
-                //if hue/saturation/brightness out of range -> turn black
-                // for red specific fruit (due to the fact red's hue is between 320 degrees and 30 degrees
+                // if hue/saturation/brightness out of range -> turn black
+                // for red specific fruit (due to the fact red's hue is around between 320 degrees and 30 degrees
                 if(finalHue > 320 || finalHue < 30) {
-                    if (((oldColor.getHue() <= finalHue) && (oldColor.getHue() <= 30)) || ((oldColor.getHue() >= finalHue) && (oldColor.getHue() >= 320))) {
-                        if(oldColor.getSaturation() <= finalSat-.1 || oldColor.getSaturation() >= finalSat+.1) {
-                            if(oldColor.getBrightness() <= finalBri-.4 || oldColor.getBrightness() >= finalBri+.4) {
-                                writer.setColor(i, j, black);
-                            } else {
-                                writer.setColor(i, j, white);
-                            }
-                        } else {
-                            writer.setColor(i, j, black);
-                        }
-                    } else writer.setColor(i, j, black);
-                }
-
-                // for other coloured fruit
-                else if(finalHue < 320 || finalHue > 30) {
-                    // if hue is not out of range turn white
-                    if ((oldColor.getHue() <= finalHue-40 && oldColor.getHue() < 30) || (oldColor.getHue() >= finalHue+40 && oldColor.getHue() > 320)) {
+                    if (((oldColor.getHue() >= finalHue+20) && (finalHue < 30) && (oldColor.getHue() < 320)) || (oldColor.getHue() <= finalHue-60) && (finalHue > 320) && (oldColor.getHue() > 30)) {
                         writer.setColor(i, j, black);
                     } else {
-                        if(oldColor.getSaturation() <= finalSat-.4 || oldColor.getSaturation() >= finalSat+.4) {
+                        if (oldColor.getSaturation() <= finalSat - .9 || oldColor.getSaturation() >= finalSat + .9) {
                             writer.setColor(i, j, black);
                         } else {
-                            if(oldColor.getBrightness() <= finalBri-.4 || oldColor.getBrightness() >= finalBri+.4) {
+                            if (oldColor.getBrightness() <= finalBri - .7 || oldColor.getBrightness() >= finalBri + .2) {
                                 writer.setColor(i, j, black);
                             } else {
                                 writer.setColor(i, j, white);
@@ -127,7 +107,40 @@ public class Controller implements Initializable {
                         }
                     }
                 }
-                //^^^^^^^^^^^^ FIX THIS SHITHEAD
+                // for orange coloured fruit
+                else if(finalHue < 60 && finalHue > 30) {
+                    // if hue is out of range turn black
+                    if ((oldColor.getHue() <= finalHue-30) || (oldColor.getHue() >= finalHue+30)) {
+                        writer.setColor(i, j, black);
+                    } else {
+                        if(oldColor.getSaturation() <= finalSat-.3 || oldColor.getSaturation() >= finalSat+.3) {
+                            writer.setColor(i, j, black);
+                        } else {
+                            if(oldColor.getBrightness() <= finalBri-.45 || oldColor.getBrightness() >= finalBri+.45) {
+                                writer.setColor(i, j, black);
+                            } else {
+                                writer.setColor(i, j, white);
+                            }
+                        }
+                    }
+                }
+                // for blue/purple coloured fruit
+                else if(finalHue < 320 && finalHue > 150) {
+                    // if hue is out of range turn black
+                    if ((oldColor.getHue() <= finalHue-60) || (oldColor.getHue() >= finalHue+60)) {
+                        writer.setColor(i, j, black);
+                    } else {
+                        if(oldColor.getSaturation() <= finalSat-.3 || oldColor.getSaturation() >= finalSat+.3) {
+                            writer.setColor(i, j, black);
+                        } else {
+                            if(oldColor.getBrightness() <= finalBri-.45 || oldColor.getBrightness() >= finalBri+.45) {
+                                writer.setColor(i, j, black);
+                            } else {
+                                writer.setColor(i, j, white);
+                            }
+                        }
+                    }
+                }
             }
         }
         calcView.setImage(outputImage);
@@ -166,21 +179,23 @@ public class Controller implements Initializable {
             } else down = imageArray.length-1;
 
             if (imageArray[data] > -1) {
-
                 if(down < imageArray.length && imageArray[down] > -1) {
                     union(imageArray, data, down);
                 }
                 if(right < imageArray.length && imageArray[right] > -1 ) {
                     union(imageArray, data, right);
                 }
-                //System.out.println("Index: " + data + " root: " + imageArray[data]);
             }
         }
         getRectPositions(imageArray);
     }
 
     public void getRectPositions(int[] imageArray) {
+        ((AnchorPane)processedView.getParent()).getChildren().removeIf(f->f instanceof Rectangle);
+        ((AnchorPane)processedView.getParent()).getChildren().removeIf(h->h instanceof Text);
         HashSet<Integer> roots = new HashSet<>();
+        ArrayList<RectangleNumber> rectangleNumbers = new ArrayList<RectangleNumber>();
+
 
         for(int i = 0; i < imageArray.length; i++) if(imageArray[i] != -1) roots.add(find(imageArray,i));
 
@@ -209,37 +224,57 @@ public class Controller implements Initializable {
                             if (ry > maxY) {
                                 maxY = ry;
                             }
+                            // adds the root to the arrayList and has a value of its area (w*l)
                     }
                 }
             }
-            if (((maxX-minX)*(maxY - minY) > 150) || (maxX-minX)*(maxY - minY) < 1000) {
-                drawRectangles(minX, minY, maxX, maxY);
+
+            // cleanup for outlying, small disjoint sets by finding the area of each disjoint set.
+            if ((((maxX-minX)*(maxY - minY)) > 150) && (((maxX-minX)*(maxY - minY)) < 1000000)) {
+                drawRectangles(r, minX, minY, maxX, maxY);
+                int area = (maxX-minX)*(maxY-minY);
+                rectangleNumbers.add(new RectangleNumber(r, minX, maxY, area));
+                // creates a rectangle number to find the position to draw the number.
+                // adds the rectangle number to the arrayList of disjointSets.
+//                sortDisjoint(disjointSets);
+                //Text text = new Text(minX, maxY, area+"");
             }
         }
+        drawNumbers(rectangleNumbers);
     }
 
-    public void drawRectangles(int minX, int minY, int maxX, int maxY) {
-        //check
+    public void drawNumbers(ArrayList<RectangleNumber> rectangleNumbers) {
+        Collections.sort(rectangleNumbers, RectangleNumber.AreaComparator);
+        Collections.reverse(rectangleNumbers);
+        for (int i = 0; i < rectangleNumbers.size(); i++) {
+            Text text = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY(), 1+i+"");
+            text.setLayoutX(calcView.getLayoutX());
+            text.setLayoutY(calcView.getLayoutY());
+            ((AnchorPane) processedView.getParent()).getChildren().add(text);
+        }
+
+    }
+
+    // creates a rectangle instance and sets the style of having a stroke of blue and adding it to the imageView
+    public void drawRectangles(int r, int minX, int minY, int maxX, int maxY) {
         Rectangle rect = new Rectangle(minX, minY, maxX-minX, maxY-minY);
         rect.setFill(Color.TRANSPARENT);
         rect.setStroke(Color.BLUE);
         rect.setLayoutX(calcView.getLayoutX());
         rect.setLayoutY(calcView.getLayoutY());
-        ((AnchorPane)processedView.getParent()).getChildren().remove(rect);
         ((AnchorPane)processedView.getParent()).getChildren().add(rect);
     }
 
-    //finds the root of each of the pixels
+    // finds the root of each of the pixels
     public int find(int[] imageArray, int data) {
         if(imageArray[data]==data) return data;
         else return find(imageArray, imageArray[data]);
     }
 
-    //unions the disjoint sets into bigger ones
+    // unions the disjoint sets into bigger ones
     public void union(int[] imageArray, int a, int b) {
         imageArray[find(imageArray,b)]=find(imageArray,a); //makes the root of b made to reference a
     }
-
 
     public Color getSelectedColor() {
             return selectedColor;
@@ -248,4 +283,5 @@ public class Controller implements Initializable {
     public void setSelectedColor(Color selectedColor) {
         this.selectedColor = selectedColor;
     }
+
 }
