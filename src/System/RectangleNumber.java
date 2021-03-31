@@ -1,7 +1,5 @@
 package System;
 
-import com.sun.javafx.geom.Rectangle;
-
 import java.util.Comparator;
 
 public class RectangleNumber {

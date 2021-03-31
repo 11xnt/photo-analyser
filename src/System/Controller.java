@@ -27,6 +27,7 @@ public class Controller implements Initializable {
     ArrayList<RectangleNumber> rectangleNumbers;
 
     private Color selectedColor;
+    private int clusterCounter;
     int[] imageArray;
 
 
@@ -35,10 +36,9 @@ public class Controller implements Initializable {
     @FXML
     public ImageView originalView, calcView, processedView;
     @FXML
-    public Text imageProp1;
+    public Text imageProp1, estimatedFruitClusterSize;
     @FXML
     public Slider brightSlider, satSlider;
-
 
 
     @Override
@@ -52,6 +52,7 @@ public class Controller implements Initializable {
         if (file != null) {
             file.toURI();
             imageProp1.setText(file.getName() + '\n' + file.length() + " bytes");
+            estimatedFruitClusterSize.setText("");
             Image image = new Image(file.toURI().toString(), originalView.getFitWidth(), originalView.getFitHeight(), false, true);
             imageChosen = image;
             originalView.setImage(image);
@@ -243,16 +244,23 @@ public class Controller implements Initializable {
         drawNumbers(rectangleNumbers);
     }
 
+    // draws the numbers of
     public void drawNumbers(ArrayList<RectangleNumber> rectangleNumbers) {
+        clusterCounter = 0;
         Collections.sort(rectangleNumbers, RectangleNumber.AreaComparator);
         Collections.reverse(rectangleNumbers);
         for (int i = 0; i < rectangleNumbers.size(); i++) {
             Text text = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY(), 1+i+"");
+            Text areaText = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY()+15, "Area: "+rectangleNumbers.get(i).getArea());
             text.setLayoutX(calcView.getLayoutX());
             text.setLayoutY(calcView.getLayoutY());
+            areaText.setLayoutX(calcView.getLayoutX());
+            areaText.setLayoutY(calcView.getLayoutY());
             ((AnchorPane) processedView.getParent()).getChildren().add(text);
+            ((AnchorPane) processedView.getParent()).getChildren().add(areaText);
+            clusterCounter++;
+            setClusterCounter(clusterCounter);
         }
-
     }
 
     // creates a rectangle instance and sets the style of having a stroke of blue and adding it to the imageView
@@ -260,9 +268,15 @@ public class Controller implements Initializable {
         Rectangle rect = new Rectangle(minX, minY, maxX-minX, maxY-minY);
         rect.setFill(Color.TRANSPARENT);
         rect.setStroke(Color.BLUE);
+        rect.setStrokeWidth(2);
         rect.setLayoutX(calcView.getLayoutX());
         rect.setLayoutY(calcView.getLayoutY());
         ((AnchorPane)processedView.getParent()).getChildren().add(rect);
+    }
+
+    public void estimateClusterSize(ActionEvent event) {
+        estimatedFruitClusterSize.setText("Estimated fruit cluster size: " + getClusterCounter());
+        ((AnchorPane)processedView.getParent()).getChildren().add(estimatedFruitClusterSize);
     }
 
     // finds the root of each of the pixels
@@ -277,11 +291,19 @@ public class Controller implements Initializable {
     }
 
     public Color getSelectedColor() {
-            return selectedColor;
+        return selectedColor;
     }
 
     public void setSelectedColor(Color selectedColor) {
         this.selectedColor = selectedColor;
+    }
+
+    public void setClusterCounter(int clusterCounter) {
+        this.clusterCounter = clusterCounter;
+    }
+
+    public int getClusterCounter() {
+        return clusterCounter;
     }
 
 }
