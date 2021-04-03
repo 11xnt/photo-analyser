@@ -3,8 +3,7 @@ package System;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Slider;
-import javafx.scene.control.Tab;
+import javafx.scene.control.*;
 import javafx.scene.image.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -19,16 +18,19 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+import static java.lang.Integer.parseInt;
+
 public class Controller implements Initializable {
 
-    Image imageChosen;
+    Image imageChosen, bnW;
     Stage stage;
-    //RectangleNumbers rectangleNumbers;
     ArrayList<RectangleNumber> rectangleNumbers;
+    WritableImage baW;
 
     private Color selectedColor;
     private int clusterCounter;
     int[] imageArray;
+
 
 
     @FXML
@@ -36,9 +38,13 @@ public class Controller implements Initializable {
     @FXML
     public ImageView originalView, calcView, processedView;
     @FXML
-    public Text imageProp1, estimatedFruitClusterSize;
+    public Text imageProp1, estimatedFruitClusterSize, successColouringText;
     @FXML
     public Slider brightSlider, satSlider;
+    @FXML
+    public Button colourAllDisjointButton;
+    @FXML
+    public TextField clusterIdText;
 
 
     @Override
@@ -58,7 +64,7 @@ public class Controller implements Initializable {
             originalView.setImage(image);
             calcView.setImage(image);
             processedView.setImage(image);
-
+            successColouringText.setVisible(false);
         }
     }
 
@@ -86,8 +92,8 @@ public class Controller implements Initializable {
         PixelReader pixelReader = calcView.getImage().getPixelReader();
         Color black = new Color(0, 0, 0, 1);
         Color white = new Color(1, 1, 1, 1);
-        WritableImage outputImage = new WritableImage((int) calcView.getImage().getWidth(), (int) calcView.getImage().getHeight());
-        PixelWriter writer = outputImage.getPixelWriter();
+        WritableImage baW = new WritableImage((int) calcView.getImage().getWidth(), (int) calcView.getImage().getHeight());
+        PixelWriter writer = baW.getPixelWriter();
         for (int i = 0; i < imageChosen.getWidth(); i++) {
             for (int j = 0; j < imageChosen.getHeight(); j++) {
                 Color oldColor = pixelReader.getColor(i, j);
@@ -144,15 +150,14 @@ public class Controller implements Initializable {
                 }
             }
         }
-        calcView.setImage(outputImage);
+        calcView.setImage(baW);
+        setBawImage(baW);
     }
 
     public void process(ActionEvent event) {
         //create array the size of the width x the height
         imageArray = new int[(int) imageChosen.getHeight() * (int) imageChosen.getWidth()];
         Color white = new Color(1, 1, 1, 1);
-        int row = 0;
-        int column = 0;
         //go through pixel by pixel, if black { -1 }, white { row*width+column }
         PixelReader pixelReader = calcView.getImage().getPixelReader();
         for (int i = 0; i < calcView.getImage().getHeight(); i++) {
@@ -189,6 +194,7 @@ public class Controller implements Initializable {
             }
         }
         getRectPositions(imageArray);
+        colourAllDisjointButton.setVisible(true);
     }
 
     public void getRectPositions(int[] imageArray) {
@@ -199,6 +205,7 @@ public class Controller implements Initializable {
 
 
         for(int i = 0; i < imageArray.length; i++) if(imageArray[i] != -1) roots.add(find(imageArray,i));
+
 
         for(int r : roots) {
             // calculate fruit bounds for every fruit.
@@ -225,33 +232,28 @@ public class Controller implements Initializable {
                             if (ry > maxY) {
                                 maxY = ry;
                             }
-                            // adds the root to the arrayList and has a value of its area (w*l)
                     }
                 }
             }
 
             // cleanup for outlying, small disjoint sets by finding the area of each disjoint set.
             if ((((maxX-minX)*(maxY - minY)) > 150) && (((maxX-minX)*(maxY - minY)) < 1000000)) {
-                drawRectangles(r, minX, minY, maxX, maxY);
-                int area = (maxX-minX)*(maxY-minY);
-                rectangleNumbers.add(new RectangleNumber(r, minX, maxY, area));
-                // creates a rectangle number to find the position to draw the number.
-                // adds the rectangle number to the arrayList of disjointSets.
-//                sortDisjoint(disjointSets);
-                //Text text = new Text(minX, maxY, area+"");
+                drawRectangles(minX, minY, maxX, maxY);
+                rectangleNumbers.add(new RectangleNumber(r, maxX, minX, maxY, minY, estimateAreaSize(r)));
             }
         }
         drawNumbers(rectangleNumbers);
+        setRectangleNumbers(rectangleNumbers);
     }
 
     // draws the numbers of
     public void drawNumbers(ArrayList<RectangleNumber> rectangleNumbers) {
         clusterCounter = 0;
-        Collections.sort(rectangleNumbers, RectangleNumber.AreaComparator);
+        rectangleNumbers.sort(RectangleNumber.AreaComparator);
         Collections.reverse(rectangleNumbers);
         for (int i = 0; i < rectangleNumbers.size(); i++) {
             Text text = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY(), 1+i+"");
-            Text areaText = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY()+15, "Area: "+rectangleNumbers.get(i).getArea());
+            Text areaText = new Text(rectangleNumbers.get(i).getMinX(), rectangleNumbers.get(i).getMaxY()+15, "Area: "+rectangleNumbers.get(i).getArea()+" pixels");
             text.setLayoutX(calcView.getLayoutX());
             text.setLayoutY(calcView.getLayoutY());
             areaText.setLayoutX(calcView.getLayoutX());
@@ -264,7 +266,7 @@ public class Controller implements Initializable {
     }
 
     // creates a rectangle instance and sets the style of having a stroke of blue and adding it to the imageView
-    public void drawRectangles(int r, int minX, int minY, int maxX, int maxY) {
+    public void drawRectangles(int minX, int minY, int maxX, int maxY) {
         Rectangle rect = new Rectangle(minX, minY, maxX-minX, maxY-minY);
         rect.setFill(Color.TRANSPARENT);
         rect.setStroke(Color.BLUE);
@@ -275,8 +277,95 @@ public class Controller implements Initializable {
     }
 
     public void estimateClusterSize(ActionEvent event) {
+        ((AnchorPane)processedView.getParent()).getChildren().removeAll(estimatedFruitClusterSize);
         estimatedFruitClusterSize.setText("Estimated fruit cluster size: " + getClusterCounter());
         ((AnchorPane)processedView.getParent()).getChildren().add(estimatedFruitClusterSize);
+    }
+
+    // estimates the cluster area size for each of cluster (white pixels in a cluster)
+    public int estimateAreaSize(int r) {
+        int areaCounter = 0;
+        for (int j : imageArray) {
+            if (r == j) {
+                areaCounter++;
+            }
+        }
+        return areaCounter;
+    }
+
+    public void colourAllDisjoints(ActionEvent event) {
+        calcView.setImage(getBawImage());
+        Random rand = new Random();
+        //HashSet<Integer> roots = new HashSet<>();
+        PixelReader pixelReader = calcView.getImage().getPixelReader();
+        WritableImage outputImage = new WritableImage((int) calcView.getImage().getWidth(), (int) calcView.getImage().getHeight());
+        PixelWriter writer = outputImage.getPixelWriter();
+
+        // overlaps the image to make the other disjoint sets the same
+        overlapBaW(pixelReader, writer);
+
+        for (int i = 0; i < rectangleNumbers.size(); i++) {
+            // random 'light' colours sourced from https://stackoverflow.com/questions/4246351/creating-random-colour-in-java/48227323
+            float r = (float) (rand.nextFloat() / 2f + 0.5);
+            float g = (float) (rand.nextFloat() / 2f + 0.5);
+            float b = (float) (rand.nextFloat() / 2f + 0.5);
+            Color randColor = new Color(r, g, b, 1);
+
+            for(int k = getRectangleNumbers().get(i).getMinX(); k <= getRectangleNumbers().get(i).getMaxX(); k++) {
+                for(int j = getRectangleNumbers().get(i).getMinY(); j <= getRectangleNumbers().get(i).getMaxY(); j++) {
+                    if(pixelReader.getColor(k,j).equals(Color.WHITE)) {
+                        writer.setColor(k,j,randColor);
+                    }
+                }
+            }
+        }
+        calcView.setImage(outputImage);
+    }
+
+    // gets the x,y coords of the image
+    public void colourSingleDisjointSet(ActionEvent event) throws IOException {
+        calcView.setImage(getBawImage());
+        rectangleNumbers.sort(RectangleNumber.AreaComparator);
+        Collections.reverse(rectangleNumbers);
+        int selectedCluster = parseInt(clusterIdText.getText())+1;
+        PixelReader pixelReader = calcView.getImage().getPixelReader();
+        WritableImage outputImage = new WritableImage((int) calcView.getImage().getWidth(), (int) calcView.getImage().getHeight());
+        PixelWriter writer = outputImage.getPixelWriter();
+        Random rand = new Random();
+        float r = (float) (rand.nextFloat() / 2f + 0.5);
+        float g = (float) (rand.nextFloat() / 2f + 0.5);
+        float b = (float) (rand.nextFloat() / 2f + 0.5);
+        Color randColor = new Color(r, g, b, 1);
+        // overlaps the image to make the other disjoint sets the same
+        overlapBaW(pixelReader, writer);
+
+        for(int i = getRectangleNumbers().get(selectedCluster-2).getMinX(); i <= getRectangleNumbers().get(selectedCluster-2).getMaxX(); i++) {
+            for(int j = getRectangleNumbers().get(selectedCluster-2).getMinY(); j <= getRectangleNumbers().get(selectedCluster-2).getMaxY(); j++) {
+                if(pixelReader.getColor(i,j).equals(Color.WHITE)) {
+                    writer.setColor(i,j,randColor);
+                }
+            }
+        }
+        calcView.setImage(outputImage);
+        displayText();
+    }
+
+    public void displayText() {
+        successColouringText.setVisible(true);
+        successColouringText.setText("Now go back to the Calculated tab to see the changes");
+        ((AnchorPane) processedView.getParent()).getChildren().add(successColouringText);
+    }
+
+
+    // overlaps the image to make the other disjoint sets the same
+    public void overlapBaW(PixelReader pixelReader, PixelWriter writer) {
+        for (int l = 0; l < imageChosen.getWidth(); l++) {
+            for (int k = 0; k < imageChosen.getHeight(); k++) {
+                if(pixelReader.getColor(l,k).equals(Color.BLACK)) {
+                    writer.setColor(l,k,Color.BLACK);
+                }
+            }
+        }
     }
 
     // finds the root of each of the pixels
@@ -306,4 +395,22 @@ public class Controller implements Initializable {
         return clusterCounter;
     }
 
+    private void setBawImage(WritableImage baW) {
+        this.baW = baW;
+    }
+
+    private WritableImage getBawImage() {
+        return baW;
+    }
+
+    public ArrayList<RectangleNumber> getRectangleNumbers() {
+        return rectangleNumbers;
+    }
+
+    public void setRectangleNumbers(ArrayList<RectangleNumber> rectangleNumbers) {
+        this.rectangleNumbers = rectangleNumbers;
+    }
+
+
+    //TODO: fix cluster array location and fix cluster sizes
 }

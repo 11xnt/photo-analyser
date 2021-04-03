@@ -4,12 +4,14 @@ import java.util.Comparator;
 
 public class RectangleNumber {
 
-    int root, minX, maxY, area;
+    int root, maxX, minX, maxY, minY, area;
 
-    public RectangleNumber(int root, int minX, int maxY, int area) {
+    public RectangleNumber(int root, int maxX, int minX, int maxY, int minY, int area) {
         this.root = root;
         this.minX = minX;
+        this.maxX = maxX;
         this.maxY = maxY;
+        this.minY = minY;
         this.area = area;
     }
 
@@ -57,4 +59,13 @@ public class RectangleNumber {
     public void setArea(int area) {
         this.area = area;
     }
+
+    public int getMaxX() { return maxX; }
+
+    public void setMaxX(int maxX) { this.maxX = maxX; }
+
+    public int getMinY() { return minY; }
+
+    public void setMinY(int minY) { this.minY = minY; }
+
 }
