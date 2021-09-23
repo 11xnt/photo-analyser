@@ -22,7 +22,6 @@
       </ul>
     </li>
     <li><a href="#projectlink">Project Link</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
